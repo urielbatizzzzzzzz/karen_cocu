@@ -1,0 +1,608 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { createRoot } from 'react-dom/client';
+import './estilos.css'; 
+import audioLluvia from './lluvia.mp3';
+
+// ─────────────────────────────────────────────
+// DATOS DEL TEST DE BECK (21 preguntas)
+// ─────────────────────────────────────────────
+const PREGUNTAS = [
+  'Entumecimiento u hormigueo',
+  'Sensación de calor',
+  'Inestabilidad en las piernas',
+  'Incapacidad para relajarse',
+  'Miedo a que ocurra lo peor',
+  'Mareo o aturdimiento',
+  'Palpitaciones o taquicardia',
+  'Sensación de inestabilidad',
+  'Terrores o pánico',
+  'Nerviosismo',
+  'Sensación de ahogo',
+  'Manos temblorosas',
+  'Temblores en todo el cuerpo',
+  'Miedo a perder el control',
+  'Dificultad para respirar',
+  'Miedo a morir',
+  'Sensación de miedo o susto',
+  'Indigestión o malestar abdominal',
+  'Desmayos',
+  'Rubor o enrojecimiento facial',
+  'Sudoración (no por calor)',
+];
+
+const OPCIONES = [
+  'Para nada',
+  'Levemente',
+  'Moderadamente, fue muy desagradable',
+  'Severamente, casi no pude soportarlo',
+];
+
+// ─────────────────────────────────────────────
+// COMPONENTE: SECCIÓN INICIO
+// ─────────────────────────────────────────────
+function SeccionInicio({ irA }) {
+  return (
+    <div className="seccion activo">
+      <div className="hero">
+        <div>
+          <h1>Tu espacio seguro de bienestar mental</h1>
+          <p>
+            Explora herramientas de psicoeducación, realiza el test de ansiedad
+            de Beck y aprende técnicas de relajación respaldadas por la ciencia.
+          </p>
+          <button className="hero-btn" onClick={() => irA('test')}>
+            Realizar test de ansiedad →
+          </button>
+        </div>
+        <img
+          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80"
+          alt="Naturaleza tranquila con lago y montañas"
+          onError={(e) => (e.target.style.display = 'none')}
+        />
+      </div>
+
+      <div className="grid-container">
+        <article className="icon-card" onClick={() => irA('test')}>
+          <div className="icono">📋</div>
+          <h3>Test de Beck</h3>
+          <p>Evalúa tu nivel de ansiedad con el instrumento clínico más validado.</p>
+        </article>
+        <article className="icon-card" onClick={() => irA('psico')}>
+          <div className="icono">🧠</div>
+          <h3>Psicoeducación</h3>
+          <p>Aprende qué es la ansiedad y cómo funciona tu mente.</p>
+        </article>
+        <article className="icon-card" onClick={() => irA('relax')}>
+          <div className="icono">🫁</div>
+          <h3>Relajación</h3>
+          <p>Técnicas de respiración y meditación guiada.</p>
+        </article>
+        <article className="icon-card" onClick={() => irA('recursos')}>
+          <div className="icono">📚</div>
+          <h3>Recursos</h3>
+          <p>Líneas de crisis, apps recomendadas y lecturas.</p>
+        </article>
+      </div>
+
+      <div className="summary-card">
+        <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+        <p style={{ fontSize: '0.88rem', color: '#555', lineHeight: 1.6 }}>
+          <strong style={{ color: 'var(--verde-oscuro)' }}>Aviso importante: </strong>
+          Esta plataforma tiene fines psicoeducativos únicamente. No reemplaza
+          el diagnóstico ni tratamiento de un profesional de salud mental.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// COMPONENTE: TEST DE BECK
+// ─────────────────────────────────────────────
+function SeccionTest() {
+  const [pagina, setPagina] = useState(0);
+  const [respuestas, setRespuestas] = useState(new Array(21).fill(null));
+  const [terminado, setTerminado] = useState(false);
+
+  const seleccionar = (i) => {
+    const nueva = [...respuestas];
+    nueva[pagina] = i;
+    setRespuestas(nueva);
+  };
+
+  const progreso = Math.round(((pagina + 1) / PREGUNTAS.length) * 100);
+
+  const mostrarResultado = () => setTerminado(true);
+  const reiniciar = () => {
+    setPagina(0);
+    setRespuestas(new Array(21).fill(null));
+    setTerminado(false);
+  };
+
+  if (terminado) {
+    const total = respuestas.reduce((a, b) => a + (b || 0), 0);
+    let nivel, desc, color;
+    if (total <= 7) {
+      nivel = 'Ansiedad mínima'; color = '#547A6A';
+      desc = 'Tu puntaje indica muy poca o ninguna ansiedad. Continúa cuidando tus hábitos de bienestar.';
+    } else if (total <= 15) {
+      nivel = 'Ansiedad leve'; color = '#BA7517';
+      desc = 'Presentas síntomas leves. Practica técnicas de relajación y manejo del estrés regularmente.';
+    } else if (total <= 25) {
+      nivel = 'Ansiedad moderada'; color = '#D85A30';
+      desc = 'Tu nivel de ansiedad es moderado. Se recomienda buscar orientación profesional.';
+    } else {
+      nivel = 'Ansiedad severa'; color = '#E24B4A';
+      desc = 'Presentas síntomas significativos. Es importante consultar con un profesional a la brevedad.';
+    }
+
+    return (
+      <div className="test-container">
+        <div className="progress-bar">
+          <div className="progress-fill" style={{ width: '100%' }} />
+        </div>
+        <div className="resultado-box">
+          <div className="resultado-puntaje" style={{ color }}>{total}</div>
+          <div className="resultado-nivel" style={{ color }}>{nivel}</div>
+          <div className="resultado-desc">{desc}</div>
+          <table className="tabla-niveles">
+            <thead>
+              <tr><th>Puntaje</th><th>Nivel</th><th>Recomendación</th></tr>
+            </thead>
+            <tbody>
+              <tr className={total <= 7 ? 'fila-activa' : ''}>
+                <td>0 – 7</td><td>Mínima</td><td>Mantener hábitos saludables</td>
+              </tr>
+              <tr className={total >= 8 && total <= 15 ? 'fila-activa' : ''}>
+                <td>8 – 15</td><td>Leve</td><td>Técnicas de relajación</td>
+              </tr>
+              <tr className={total >= 16 && total <= 25 ? 'fila-activa' : ''}>
+                <td>16 – 25</td><td>Moderada</td><td>Orientación psicológica</td>
+              </tr>
+              <tr className={total >= 26 ? 'fila-activa' : ''}>
+                <td>26 – 63</td><td>Severa</td><td>Atención profesional urgente</td>
+              </tr>
+            </tbody>
+          </table>
+          <button className="btn-reiniciar" onClick={reiniciar}>Realizar de nuevo</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="test-container">
+      <div className="progress-bar">
+        <div className="progress-fill" style={{ width: progreso + '%' }} />
+      </div>
+      <div className="pregunta-num">Pregunta {pagina + 1} de {PREGUNTAS.length}</div>
+      <div className="pregunta-texto">{PREGUNTAS[pagina]}</div>
+      <div className="opciones">
+        {OPCIONES.map((op, i) => (
+          <button
+            key={i}
+            className={'opcion' + (respuestas[pagina] === i ? ' seleccionada' : '')}
+            onClick={() => seleccionar(i)}
+          >
+            {op}
+          </button>
+        ))}
+      </div>
+      <div className="nav-test">
+        <button
+          className="btn-test btn-prev"
+          onClick={() => setPagina(pagina - 1)}
+          disabled={pagina === 0}
+        >
+          ← Anterior
+        </button>
+        <button
+          className="btn-test btn-next"
+          onClick={() => pagina === PREGUNTAS.length - 1 ? mostrarResultado() : setPagina(pagina + 1)}
+          disabled={respuestas[pagina] === null}
+        >
+          {pagina === PREGUNTAS.length - 1 ? 'Ver resultado' : 'Siguiente →'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// COMPONENTE: PSICOEDUCACIÓN
+// ─────────────────────────────────────────────
+function SeccionPsico() {
+  return (
+    <div>
+      <img
+        className="psico-img"
+        src="https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=900&q=80"
+        alt="Persona meditando en paz"
+        onError={(e) => (e.target.style.display = 'none')}
+      />
+      <div className="info-grid">
+        <div className="info-box">
+          <h3>¿Qué es la ansiedad?</h3>
+          <p style={{ fontSize: '0.9rem', color: '#555', lineHeight: 1.7, marginBottom: '12px' }}>
+            La ansiedad es una respuesta natural ante situaciones percibidas como
+            amenazantes. En niveles moderados nos ayuda a enfrentar retos; el problema
+            surge cuando se vuelve excesiva o constante.
+          </p>
+          <ul>
+            <li>Activación del sistema nervioso simpático</li>
+            <li>Liberación de adrenalina y cortisol</li>
+            <li>Preparación para "luchar o huir"</li>
+            <li>Aumento de frecuencia cardíaca</li>
+            <li>Tensión muscular generalizada</li>
+          </ul>
+        </div>
+        <div className="info-box">
+          <h3>Síntomas más frecuentes</h3>
+          <ul>
+            <li>Preocupación excesiva y persistente</li>
+            <li>Dificultad para concentrarse</li>
+            <li>Irritabilidad sin causa aparente</li>
+            <li>Tensión muscular o dolores de cabeza</li>
+            <li>Problemas para dormir (insomnio)</li>
+            <li>Palpitaciones o sensación de ahogo</li>
+            <li>Evitación de situaciones temidas</li>
+            <li>Pensamientos catastróficos</li>
+          </ul>
+        </div>
+        <div className="info-box">
+          <h3>Pasos para manejar la ansiedad</h3>
+          <ol>
+            <li>Reconoce y nombra lo que sientes</li>
+            <li>Practica respiración diafragmática</li>
+            <li>Identifica los pensamientos automáticos</li>
+            <li>Cuestiona si esos pensamientos son reales</li>
+            <li>Activa tu cuerpo con ejercicio moderado</li>
+            <li>Establece rutinas de sueño regulares</li>
+            <li>Reduce el consumo de cafeína y alcohol</li>
+            <li>Busca apoyo profesional si persiste</li>
+          </ol>
+        </div>
+        <div className="info-box">
+          <h3>Tipos de trastornos de ansiedad</h3>
+          <ul>
+            <li><strong>TAG:</strong> Trastorno de Ansiedad Generalizada</li>
+            <li><strong>Pánico:</strong> Ataques repentinos e intensos</li>
+            <li><strong>Fobia específica:</strong> Miedo irracional a algo concreto</li>
+            <li><strong>Fobia social:</strong> Miedo a situaciones sociales</li>
+            <li><strong>TEPT:</strong> Tras experiencias traumáticas</li>
+            <li><strong>TOC:</strong> Pensamientos obsesivos y compulsiones</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// COMPONENTE: RELAJACIÓN (con canvas)
+// ─────────────────────────────────────────────
+function SeccionRelax() {
+  const canvasRef = useRef(null);
+  const animRef = useRef(null);
+  const [activo, setActivo] = useState(false);
+  const [instruccion, setInstruccion] = useState('Presiona Iniciar para comenzar');
+  const faseRef = useRef(0);
+  const activoRef = useRef(false);
+
+  const FASES = [
+    { nombre: 'Inhala', duracion: 4, color: '#8FA991', rMin: 55, rMax: 85 },
+    { nombre: 'Sostén', duracion: 7, color: '#547A6A', rMin: 85, rMax: 85 },
+    { nombre: 'Exhala', duracion: 8, color: '#A6D2B6', rMin: 85, rMax: 55 },
+  ];
+
+  const dibujar = (r, color, texto) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 200, 200);
+    ctx.beginPath();
+    ctx.arc(100, 100, r, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.font = "bold 15px 'Segoe UI', sans-serif";
+    ctx.fillStyle = '#2c4a3e';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(texto, 100, 100);
+  };
+
+  const correrFase = () => {
+    if (!activoRef.current) return;
+    const fase = FASES[faseRef.current];
+    const durMs = fase.duracion * 1000;
+    const inicio = performance.now();
+
+    const tick = (ahora) => {
+      if (!activoRef.current) return;
+      const t = Math.min((ahora - inicio) / durMs, 1);
+      const r = fase.rMin + (fase.rMax - fase.rMin) * t;
+      const secsLeft = Math.ceil(fase.duracion * (1 - t));
+      setInstruccion(`${fase.nombre} (${secsLeft}s)`);
+      dibujar(Math.round(r), fase.color, `${secsLeft}s`);
+      if (t < 1) {
+        animRef.current = requestAnimationFrame(tick);
+      } else {
+        faseRef.current = (faseRef.current + 1) % 3;
+        correrFase();
+      }
+    };
+    animRef.current = requestAnimationFrame(tick);
+  };
+
+  const toggle = () => {
+    if (activo) {
+      activoRef.current = false;
+      setActivo(false);
+      cancelAnimationFrame(animRef.current);
+      setInstruccion('Presiona Iniciar para comenzar');
+      dibujar(70, '#e8f4ee', 'Listo');
+    } else {
+      activoRef.current = true;
+      faseRef.current = 0;
+      setActivo(true);
+      correrFase();
+    }
+  };
+
+  useEffect(() => {
+    dibujar(70, '#e8f4ee', 'Listo');
+    return () => cancelAnimationFrame(animRef.current);
+  }, []);
+
+  return (
+    <div>
+      <div className="relajacion-grid">
+        <div className="video-box">
+          <h3>🎥 Video: Técnica de relajación</h3>
+          <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '8px' }}>
+            Guía completa con respiración y visualización:
+          </p>
+          <iframe
+            width="100%"
+            height="220"
+            src="https://www.youtube.com/embed/fFD3iLA1lVY"
+            title="Video de relajación SerenaMente"
+            allowFullScreen
+          />
+        </div>
+        <div className="audio-box">
+          <h3>🎵 Audio: Meditación guiada</h3>
+          <p>Sonidos de naturaleza para calmar la mente y reducir el estrés.</p>
+          <audio controls>
+            <source src={audioLluvia} type="audio/mpeg" />
+          Tu navegador no soporta el elemento audio.
+          </audio>
+          <ol>
+            <li>Busca un lugar cómodo y silencioso</li>
+            <li>Cierra los ojos suavemente</li>
+            <li>Escucha sin distracciones</li>
+            <li>Si tu mente divaga, vuelve al sonido</li>
+          </ol>
+        </div>
+      </div>
+
+      <div className="canvas-box">
+        <h3>🫁 Respiración 4-7-8</h3>
+        <p>
+          Inhala 4 segundos → Sostén 7 segundos → Exhala 8 segundos.<br />
+          Activa el sistema nervioso parasimpático y reduce la ansiedad rápidamente.
+        </p>
+        <canvas ref={canvasRef} width={200} height={200} />
+        <div className="canvas-instruccion">{instruccion}</div>
+        <button className="btn-respiracion" onClick={toggle}>
+          {activo ? 'Detener' : 'Iniciar'}
+        </button>
+      </div>
+
+      <div className="pasos-box">
+        <h3>Relajación muscular progresiva de Jacobson</h3>
+        <ol>
+          <li>Siéntate o recuéstate en una posición cómoda</li>
+          <li>Cierra los ojos y respira profundamente 3 veces</li>
+          <li>Tensa los pies durante 5 segundos, luego suéltalos</li>
+          <li>Sube por pantorrillas, muslos y glúteos</li>
+          <li>Tensa el abdomen, pecho y hombros, luego relaja</li>
+          <li>Aprieta los puños y brazos, después suelta</li>
+          <li>Arruga el rostro 5 segundos y libera toda tensión</li>
+          <li>Permanece en quietud 2 minutos sintiendo la relajación</li>
+        </ol>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// COMPONENTE: RECURSOS
+// ─────────────────────────────────────────────
+function SeccionRecursos() {
+  return (
+    <div>
+      <table className="recursos-tabla">
+        <thead>
+          <tr>
+            <th>Recurso</th>
+            <th>Tipo</th>
+            <th>Disponibilidad</th>
+            <th>Contacto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>SAPTEL</strong> — Atención Psicológica Telefónica</td>
+            <td><span className="badge badge-verde">Línea de crisis</span></td>
+            <td>24/7</td>
+            <td>55 5259-8121</td>
+          </tr>
+          <tr>
+            <td><strong>IMSS</strong> — Salud Mental</td>
+            <td><span className="badge badge-verde">Servicio público</span></td>
+            <td>Días hábiles</td>
+            <td>800 890-0024</td>
+          </tr>
+          <tr>
+            <td><strong>Línea de la Vida</strong> — SSA</td>
+            <td><span className="badge badge-verde">Línea de crisis</span></td>
+            <td>24/7</td>
+            <td>800 911-2000</td>
+          </tr>
+          <tr>
+            <td><strong>Calm</strong> — Meditación y sueño</td>
+            <td><span className="badge badge-gris">App</span></td>
+            <td>iOS / Android</td>
+            <td>calm.com</td>
+          </tr>
+          <tr>
+            <td><strong>Headspace</strong> — Mindfulness guiado</td>
+            <td><span className="badge badge-gris">App</span></td>
+            <td>iOS / Android</td>
+            <td>headspace.com</td>
+          </tr>
+           <tr>
+            <td><strong>IPN CICS UST</strong> — Centro de Atención y Prevención Psicológica CAPPSI</td>
+            <td><span className="badge badge-verde">Clínica</span></td>
+            <td>Días hábiles</td>
+            <td>5557296000 Ext 63443</td>
+          </tr>
+          <tr>
+            <td><strong>UNAM FES Iztacala</strong> — Clínica psicológica</td>
+            <td><span className="badge badge-verde">Clínica</span></td>
+            <td>Días hábiles</td>
+            <td>55 5623-1333</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="info-grid">
+        <div className="info-box">
+          <h3>📖 Lecturas recomendadas</h3>
+          <ul>
+            <li>El poder del ahora — Eckhart Tolle</li>
+            <li>La trampa de la felicidad — Russ Harris</li>
+            <li>Cuando el cuerpo dice no — Gabor Maté</li>
+            <li>Ansiedad — David D. Burns</li>
+            <li>Mindfulness para principiantes — Jon Kabat-Zinn</li>
+          </ul>
+        </div>
+        <div className="info-box">
+          <h3>🌐 Sitios web confiables</h3>
+          <ul>
+            <li>OMS — Salud Mental (who.int)</li>
+            <li>APA — American Psychological Association</li>
+            <li>INPRFM — Instituto Nacional de Psiquiatría</li>
+            <li>Psychology Today — psychologytoday.com</li>
+            <li>Fundación UNAM — Salud Mental</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// COMPONENTE PRINCIPAL: Application
+// ─────────────────────────────────────────────
+class Application extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { seccion: 'inicio' };
+    this.irA = this.irA.bind(this);
+  }
+
+  irA(sec) {
+    this.setState({ seccion: sec });
+  }
+
+  render() {
+    const { seccion } = this.state;
+    return (
+      <div>
+        {/* HEADER */}
+        <header>
+          <div className="logo" onClick={() => this.irA('inicio')} style={{ cursor: 'pointer' }}>
+            🌿 SerenaMente
+          </div>
+          <div className="user-profile">
+            <span style={{ fontSize: '0.85rem', color: '#666' }}>Consultorio Virtual</span>
+            <div className="avatar" style={{ background: 'var(--verde-claro)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>🌿</div>
+          </div>
+        </header>
+
+        {/* LAYOUT CON SIDEBAR */}
+        <div className="layout">
+          {/* SIDEBAR */}
+          <aside>
+            <h3>Menú principal</h3>
+            <nav>
+              <a className={seccion === 'inicio' ? 'active' : ''} onClick={() => this.irA('inicio')}>🏠 Inicio</a>
+              <a className={seccion === 'test' ? 'active' : ''} onClick={() => this.irA('test')}>📋 Test de Beck</a>
+              <a className={seccion === 'psico' ? 'active' : ''} onClick={() => this.irA('psico')}>🧠 Psicoeducación</a>
+              <a className={seccion === 'relax' ? 'active' : ''} onClick={() => this.irA('relax')}>🫁 Relajación</a>
+              <a className={seccion === 'recursos' ? 'active' : ''} onClick={() => this.irA('recursos')}>📚 Recursos</a>
+            </nav>
+          </aside>
+
+          {/* CONTENIDO PRINCIPAL */}
+          <main>
+            {seccion === 'inicio' && (
+              <div>
+                <h2>Bienvenido/a a SerenaMente</h2>
+                <SeccionInicio irA={this.irA} />
+              </div>
+            )}
+            {seccion === 'test' && (
+              <div>
+                <h2>Inventario de Ansiedad de Beck (BAI)</h2>
+                <p style={{ color: '#666', marginBottom: '20px', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                  Indica qué tan molesto/a te ha sentido por cada síntoma durante la <strong>última semana</strong>.
+                </p>
+                <SeccionTest />
+              </div>
+            )}
+            {seccion === 'psico' && (
+              <div>
+                <h2>Psicoeducación sobre Ansiedad</h2>
+                <SeccionPsico />
+              </div>
+            )}
+            {seccion === 'relax' && (
+              <div>
+                <h2>Ejercicios de Relajación</h2>
+                <SeccionRelax />
+              </div>
+            )}
+            {seccion === 'recursos' && (
+              <div>
+                <h2>Recursos y Apoyo Profesional</h2>
+                <SeccionRecursos />
+              </div>
+            )}
+          </main>
+        </div>
+
+        {/* FOOTER */}
+        <footer>
+          <p>© 2026 SerenaMente — Consultorio Psicológico Virtual</p>
+          <div className="footer-links">
+            <a onClick={() => this.irA('psico')}>Psicoeducación</a>
+            <a onClick={() => this.irA('relax')}>Relajación</a>
+            <a onClick={() => this.irA('recursos')}>Recursos</a>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// MONTAJE EN EL DOM (punto de entrada)
+// ─────────────────────────────────────────────
+const rootElement = document.getElementById('contenedor');
+const root = createRoot(rootElement);
+root.render(<Application />);
+
+export default Application;
