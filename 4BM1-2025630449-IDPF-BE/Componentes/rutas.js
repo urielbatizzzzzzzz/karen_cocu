@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Usuario = require('./login');
 const Pregunta = require('./Pregunta');
+const aiService = require('./aiService');
+const { ejerciciosSaludMental } = require('./snippets');
 
 router.use((req, res, next) => {
     console.log(`--- Petición recibida: ${req.method} ${req.url} ---`);
@@ -50,7 +52,7 @@ router.get("/Pregunta", async (request,response) => {
 router.get("/Preguntas", async (request, response) => {
     try{
         const preguntas = await Pregunta.findAll({
-            attributes: ['idEjercicio', 'pregunta', 'respuesta', 'tipo']
+            attributes: ['idEjercicio', 'columnajson']
         });
         response.json(preguntas);
     } catch (error){
@@ -59,34 +61,65 @@ router.get("/Preguntas", async (request, response) => {
     }
 });
 
-//Endpoint para crear un ejercicio
+// Empaqueta los campos planos del formulario en el objeto JSON
+// que se almacena en la columna `columnajson` de la tabla.
+function construirColumnaJson(body) {
+    return {
+        pregunta: body.pregunta || "",
+        respuesta: body.respuesta || "",
+        drags: body.drags || [],
+        targets: body.targets || []
+    };
+}
+
+//Endpoint para crear/actualizar un ejercicio
 router.post("/Pregunta", async (request, response) => {
-    console.log("METODO POST (CREAR):", request.body);
+    console.log("METODO POST (CREAR/ACTUALIZAR):", request.body);
     try {
-        await Pregunta.create(request.body);
-        response.json({ status: "ok" });
+        const columnajson = construirColumnaJson(request.body);
+        const id = request.body.idEjercicio;
+
+        // Si llega un id válido se actualiza; en caso contrario se crea.
+        if (id && id !== 'undefined' && id !== 'null' && id !== "") {
+            const resultado = await Pregunta.update(
+                { columnajson },
+                { where: { idEjercicio: parseInt(id) } }
+            );
+            if (resultado[0] > 0) {
+                return response.json({ status: "yes", message: "Pregunta actualizada correctamente." });
+            }
+            return response.status(404).json({ status: "no", error: "No se encontró el registro a actualizar" });
+        }
+
+        const creada = await Pregunta.create({ columnajson });
+        response.json({ status: "yes", message: "Pregunta creada correctamente.", idEjercicio: creada.idEjercicio });
     } catch (error) {
-        response.status(500).json({ error: error.message });
+        console.error("Error al crear/actualizar:", error);
+        response.status(500).json({ status: "no", error: error.message });
     }
 });
 
+//Endpoint para actualizar un ejercicio (edición explícita por id en query)
 router.put("/Pregunta", async (request, response) => {
     const id = request.query.id;
-    if (!id) {
-        return response.status(400).json({ error: "ID no enviado desde el frontend" });
+    if (!id || id === 'undefined' || id === 'null') {
+        return response.status(400).json({ status: "no", error: "ID no enviado desde el frontend" });
     }
     try {
-        const resultado = await Pregunta.update(request.body, { 
-            where: { idEjercicio: id } 
-        });
-        
+        const columnajson = construirColumnaJson(request.body);
+        const resultado = await Pregunta.update(
+            { columnajson },
+            { where: { idEjercicio: parseInt(id) } }
+        );
+
         if (resultado[0] > 0) {
-            response.json({ status: "ok" });
+            response.json({ status: "yes", message: "Pregunta actualizada correctamente." });
         } else {
-            response.status(404).json({ error: "No se encontró el registro" });
+            response.status(404).json({ status: "no", error: "No se encontró el registro" });
         }
     } catch (error) {
-        response.status(500).json({ error: error.message });
+        console.error("Error al actualizar:", error);
+        response.status(500).json({ status: "no", error: error.message });
     }
 });
 
@@ -115,6 +148,31 @@ router.post("/pedirAyuda", async (request, response) => {
     const {codigo, pregunta} = request.body;
     const respuesta = await aiService.procesarAyuda(codigo, pregunta);
     response.json({ respuesta });
+});
+
+//Endpoint de ayuda IA (consumido por ProbarEjercicio.jsx)
+router.post("/api/ia", async (request, response) => {
+    const { codigo, funcion, entrada } = request.body;
+    try {
+        const contexto = `Función objetivo: ${funcion}. Entrada de prueba: ${JSON.stringify(entrada)}`;
+        const respuesta = await aiService.procesarAyuda(codigo, contexto);
+        response.json({ respuesta });
+    } catch (error) {
+        console.error("Error en /api/ia:", error);
+        response.status(500).json({ respuesta: "Error IA", error: error.message });
+    }
+});
+
+//Endpoint del Tutor IA (consumido por ProbarEjercicio.jsx)
+router.post("/api/ia-tutor", async (request, response) => {
+    const { codigo, contexto } = request.body;
+    try {
+        const respuesta = await aiService.procesarAyuda(codigo, JSON.stringify(contexto));
+        response.json({ respuesta });
+    } catch (error) {
+        console.error("Error en /api/ia-tutor:", error);
+        response.status(500).json({ respuesta: "Error Tutor IA", error: error.message });
+    }
 });
 
 router.get("/snippets", (request, response) => {

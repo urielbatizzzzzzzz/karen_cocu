@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Container, Table} from "react-bootstrap";
+import { Button, Container, Table, Alert} from "react-bootstrap";
 import { Link } from "react-router-dom";
 import Pregunta from "./Pregunta.jsx"
 import axios from "axios";

@@ -25,15 +25,18 @@ class Login extends React.Component {
   // ============================================================
   constructor() {
     super();  // Llama al constructor de la clase padre
-    
+
     // ============================================================
     // STATE: Estado del componente
     // ============================================================
+    // usuario / password: Campos controlados del formulario
     // condition: Booleano que indica si el usuario está autenticado
-    // tipousuario: Tipo de usuario ('administrador' u otros)
+    // tipousuario: Tipo de usuario ('administrador' | 'usuario')
     // usuarioNoValido: Booleano para redirigir a página de error
     // ============================================================
     this.state = {
+      usuario: '',
+      password: '',
       condition: false,
       tipousuario: '',
       usuarioNoValido: false
@@ -41,101 +44,69 @@ class Login extends React.Component {
   }
 
   // ============================================================
+  // MÉTODO: handleChange
+  // ============================================================
+  // Mantiene el estado sincronizado con los inputs controlados
+  // (Reemplaza el acceso directo al DOM con document.getElementById)
+  // ============================================================
+  handleChange = (e) => {
+    this.setState({ [e.target.name]: e.target.value });
+  }
+
+  // ============================================================
   // MÉTODO: validar
   // ============================================================
-  // Función flecha para mantener el contexto de 'this'
-  // Valida las credenciales del usuario contra el backend
+  // Validación local de credenciales (sin backend):
+  //   - Contraseña "1234" -> administrador  -> /administrator
+  //   - Contraseña "4321" -> usuario        -> /psico (Psico-Educación)
+  //   - Cualquier otra                      -> /no-valido
   // ============================================================
-  validar = (usuario, password) => {
-    
+  validar = () => {
+    const usuario = this.state.usuario.trim();
+    const password = this.state.password.trim();
+
     // ============================================================
-    // PETICIÓN FETCH AL BACKEND
+    // CASO 1: USUARIO VÁLIDO - ADMINISTRADOR
     // ============================================================
-    // Endpoint: /api/login (Método POST)
-    // Body: { username, password } en formato JSON
+    if (usuario && password === "1234") {
+      Swal.fire({
+        icon: 'success',
+        title: '¡Usuario Válido!',
+        text: 'Bienvenido al panel de administración de SerenaMente.'
+      }).then(() => {
+        this.setState({ condition: true, tipousuario: 'administrador' });
+      });
+
     // ============================================================
-    fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'  // Indicamos que enviamos JSON
-      },
-      body: JSON.stringify({
-        username: usuario,
-        password: password
-      })
-    })
-    
+    // CASO 2: USUARIO VÁLIDO - USUARIO ESTÁNDAR
     // ============================================================
-    // PROCESAMIENTO DE LA RESPUESTA
+    } else if (usuario && password === "4321") {
+      Swal.fire({
+        icon: 'success',
+        title: '¡Bienvenido!',
+        text: 'Accediendo a Psico-Educación.'
+      }).then(() => {
+        this.setState({ condition: true, tipousuario: 'usuario' });
+      });
+
     // ============================================================
-    // Paso 1: Convertir respuesta a JSON
-    // Paso 2: Evaluar el resultado
+    // CASO 3: USUARIO NO VÁLIDO
     // ============================================================
-    .then(response => response.json())
-    .then(data => {
-      
-      // ============================================================
-      // CASO 1: USUARIO VÁLIDO - ADMINISTRADOR
-      // ============================================================
-      // Si el status es "yes" y el tipo es "administrador"
-      // ============================================================
-      if (
-        data.status === "yes" &&
-        data.tipo === "administrador"
-      ) {
-        // Mostrar alerta de éxito con SweetAlert
-        Swal.fire({
-          icon: 'success',
-          title: '¡Usuario Válido!',
-          text: 'Bienvenido al sistema SerenaMente.'
-        }).then(() => {
-          // Actualizar el estado para redirigir al panel de administrador
-          this.setState({
-            condition: true,
-            tipousuario: 'administrador'
-          });
-        });
-        
-      // ============================================================
-      // CASO 2: USUARIO NO VÁLIDO
-      // ============================================================
-      // Si las credenciales son incorrectas o el usuario no existe
-      // ============================================================
-      } else {
-        // Mostrar alerta de error con SweetAlert
-        Swal.fire({
-          icon: 'error',
-          title: 'Acceso Denegado',
-          text: 'Usuario o contraseña incorrectos.'
-        }).then(() => {
-          // Limpiar los campos del formulario
-          document.getElementById("user").value = "";
-          document.getElementById("password").value = "";
-          
-          // Actualizar estado para redirigir a página de error
-          this.setState({
-            condition: false,
-            tipousuario: '',
-            usuarioNoValido: true
-          });
-        });
-      }
-    })
-    
-    // ============================================================
-    // CASO 3: ERROR DE CONEXIÓN
-    // ============================================================
-    // Si no se puede conectar con el backend
-    // ============================================================
-    .catch(err => {
-      // Mostrar alerta de error de conexión
+    } else {
       Swal.fire({
         icon: 'error',
-        title: 'Error',
-        text: 'No se pudo conectar al servidor backend'
+        title: 'Acceso Denegado',
+        text: 'Usuario o contraseña incorrectos.'
+      }).then(() => {
+        this.setState({
+          usuario: '',
+          password: '',
+          condition: false,
+          tipousuario: '',
+          usuarioNoValido: true
+        });
       });
-      console.error(err);  // Registrar el error en consola
-    });
+    }
   }
 
   // ============================================================
@@ -157,6 +128,8 @@ class Login extends React.Component {
     // DESESTRUCTURACIÓN DEL STATE
     // ============================================================
     const {
+      usuario,
+      password,
       condition,
       tipousuario,
       usuarioNoValido
@@ -165,12 +138,17 @@ class Login extends React.Component {
     // ============================================================
     // REDIRECCIONES CONDICIONALES
     // ============================================================
-    
+
     // Si el usuario es administrador y está autenticado
     if (condition && tipousuario === "administrador") {
       return <Navigate to="/administrator" />;
     }
-    
+
+    // Si es un usuario estándar autenticado -> Psico-Educación
+    if (condition && tipousuario === "usuario") {
+      return <Navigate to="/psico" />;
+    }
+
     // Si el usuario no es válido
     if (usuarioNoValido) {
       return <Navigate to="/no-valido" />;
@@ -226,6 +204,9 @@ class Login extends React.Component {
                     placeholder="Ingrese el usuario"
                     type="text"
                     id="user"
+                    name="usuario"
+                    value={usuario}
+                    onChange={this.handleChange}
                     className="form-control"
                   />
                 </div>
@@ -241,6 +222,9 @@ class Login extends React.Component {
                     placeholder="Ingrese su contraseña"
                     type="password"
                     id="password"
+                    name="password"
+                    value={password}
+                    onChange={this.handleChange}
                     className="form-control"
                   />
                 </div>
@@ -253,12 +237,7 @@ class Login extends React.Component {
                 ============================================================ */}
                 <button
                   className="btn btn-primary w-100"
-                  onClick={() =>
-                    this.validar(
-                      document.getElementById("user").value,
-                      document.getElementById("password").value
-                    )
-                  }
+                  onClick={this.validar}
                 >
                   Submit
                 </button>

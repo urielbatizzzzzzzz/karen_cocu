@@ -22,6 +22,7 @@ import Formulario from "./Formulario.jsx";       // Crear/Editar pregunta
 import Eliminar from "./Eliminar.jsx";           // Confirmar eliminación
 import UsuarioNoValido from "./UsuarioNoValido.jsx"; // Acceso denegado
 import ProbarEjercicio from "./ProbarEjercicio.jsx"; // Editor de código
+import PsicoEducacion from "./PsicoEducacion.jsx"; // Interfaz de usuario (Psico-Educación)
 
 // ============================================================
 // ESTILOS PERSONALIZADOS
@@ -151,6 +152,18 @@ class BootstrapReact extends React.Component {
                     <Route
                         path="/probar"
                         element={<ProbarEjercicio />}
+                    />
+
+                    {/* ============================================================
+                        RUTA: PSICO-EDUCACIÓN (Interfaz de usuario)
+                    ============================================================
+                        URL: "/psico"
+                        Componente: PsicoEducacion
+                        Destino tras login exitoso de usuario estándar
+                    ============================================================ */}
+                    <Route
+                        path="/psico"
+                        element={<PsicoEducacion />}
                     />
 
                 </Routes>

@@ -7,16 +7,9 @@ const Pregunta = sequelize.define('Pregunta', {
         primaryKey: true,
         autoIncrement: true
     },
-    pregunta: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    respuesta: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    tipo: {
-        type: DataTypes.STRING
+    columnajson: {
+        type: DataTypes.JSON,
+        allowNull: true
     }
 }, {
     tableName: 'tablajson',

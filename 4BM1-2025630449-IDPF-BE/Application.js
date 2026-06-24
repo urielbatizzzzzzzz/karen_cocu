@@ -24,6 +24,6 @@ sequelize.sync().then(() => {
             console.log("Servidor corriendo en el puerto: " + puerto);
         });
     } catch(error){
-        console.error("Error al sincronizar:", err);
-    }  
+        console.error("Error al sincronizar:", error);
+    }
 });

@@ -30,6 +30,10 @@ module.exports = {
           {
             test: /\.css$/,
             use: ["style-loader", "css-loader"]
+          },
+          {
+            test: /\.(mp3|mpeg)$/i,
+            type: 'asset/resource',
           }
         ]
       },
@@ -37,7 +41,7 @@ module.exports = {
     static: {
       directory: path.join(__dirname, 'dist'), 
     },
-    port: 8080, // Puerto del servidor
+    port: 3000, // Puerto del dev-server (evita colisión con el backend en 8080)
     open: true, // Abrir navegador automáticamente
     hot: true, // Habilitar Hot Module Replacement (HMR)
     historyApiFallback: true, // Aplicaciones SPA
