@@ -146,16 +146,16 @@ router.delete("/Pregunta", async (request, response) => {
 
 router.post("/pedirAyuda", async (request, response) => {
     const {codigo, pregunta} = request.body;
-    const respuesta = await aiService.procesarAyuda(codigo, pregunta);
+    const respuesta = await aiService.procesarAyuda(codigo, pregunta, "ayuda");
     response.json({ respuesta });
 });
 
-//Endpoint de ayuda IA (consumido por ProbarEjercicio.jsx)
+//Endpoint de ayuda IA (consumido por ProbarEjercicio.jsx) -> pista breve
 router.post("/api/ia", async (request, response) => {
     const { codigo, funcion, entrada } = request.body;
     try {
         const contexto = `Función objetivo: ${funcion}. Entrada de prueba: ${JSON.stringify(entrada)}`;
-        const respuesta = await aiService.procesarAyuda(codigo, contexto);
+        const respuesta = await aiService.procesarAyuda(codigo, contexto, "ayuda");
         response.json({ respuesta });
     } catch (error) {
         console.error("Error en /api/ia:", error);
@@ -163,11 +163,11 @@ router.post("/api/ia", async (request, response) => {
     }
 });
 
-//Endpoint del Tutor IA (consumido por ProbarEjercicio.jsx)
+//Endpoint del Tutor IA (consumido por ProbarEjercicio.jsx) -> análisis profundo
 router.post("/api/ia-tutor", async (request, response) => {
     const { codigo, contexto } = request.body;
     try {
-        const respuesta = await aiService.procesarAyuda(codigo, JSON.stringify(contexto));
+        const respuesta = await aiService.procesarAyuda(codigo, JSON.stringify(contexto), "tutor");
         response.json({ respuesta });
     } catch (error) {
         console.error("Error en /api/ia-tutor:", error);

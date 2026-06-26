@@ -212,11 +212,148 @@ body {
   padding: 20px;
 }
 .serena-card {
-  background: rgba(255, 255, 255, 0.75);
+  /* Más opaca para que el texto y el editor no se "pierdan" con el fondo */
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(10px);
   border-radius: 18px;
-  border: 1px solid rgba(85, 122, 97, 0.15);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  border: 1px solid rgba(85, 122, 97, 0.25);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.10);
+  color: #2f3d34; /* texto base oscuro para buen contraste */
+}
+/* Texto e info del ejercicio siempre legible sobre la tarjeta clara */
+.serena-card p,
+.serena-card h4,
+.serena-card h5 {
+  color: #2f3d34;
+}
+.serena-card b {
+  color: #3b5745;
+}
+/* Selector de ejercicio con borde verde para que destaque del fondo */
+.serena-card .form-select {
+  border: 1px solid #557A61;
+  color: #2f3d34;
+  font-weight: 500;
+}
+.serena-card .form-select:focus {
+  border-color: #3b5745;
+  box-shadow: 0 0 0 0.2rem rgba(85, 122, 97, 0.25);
+}
+
+/* ==========================================
+   PANEL DE RESPUESTA DE LA IA
+========================================== */
+.ia-panel {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(85, 122, 97, 0.30);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  background: #ffffff;
+}
+.ia-panel-header {
+  background: linear-gradient(135deg, #557A61, #3b5745);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 10px 18px;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ia-copiar {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+.ia-copiar:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+/* Badge de resultado de la ejecución (color según el estado) */
+.resultado-badge {
+  display: inline-block;
+  padding: 2px 14px;
+  border-radius: 999px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+}
+.resultado-ok    { background: #557A61; }  /* VERDADERO - verde */
+.resultado-fail  { background: #D96B62; }  /* FALSO - rojo coral */
+.resultado-error { background: #E29548; }  /* ERROR - naranja */
+.ia-panel-body {
+  padding: 16px 18px;
+  background: #f4f7f5;
+}
+.ia-cargando {
+  color: #557A61;
+  font-style: italic;
+  font-weight: 500;
+}
+.ia-respuesta {
+  white-space: pre-wrap;       /* respeta saltos de línea y ajusta texto */
+  word-break: break-word;
+  margin: 0;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #2f3d34;
+}
+
+/* ==========================================
+   TABLA DE MEJORAS (index)
+========================================== */
+.tabla-mejoras-wrap {
+  max-width: 900px;
+  margin: 40px auto;
+  font-family: sans-serif;
+}
+.tabla-mejoras-wrap h3 {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.tabla-mejoras {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  background: #ffffff;
+}
+.tabla-mejoras thead th {
+  background: linear-gradient(135deg, #557A61, #3b5745);
+  color: #ffffff;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+}
+.tabla-mejoras tbody td {
+  padding: 11px 16px;
+  border-bottom: 1px solid #e2ebd5;
+  color: #2f3d34;
+}
+.tabla-mejoras tbody tr:nth-child(even) {
+  background: #f4f7f5;
+}
+.tabla-mejoras tbody tr:hover {
+  background: #e6f0ea;
+}
+.tabla-mejoras .badge-ok {
+  display: inline-block;
+  background: #557A61;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
 }
 .serena-header {
   background: linear-gradient(135deg, #557A61, #3b5745);

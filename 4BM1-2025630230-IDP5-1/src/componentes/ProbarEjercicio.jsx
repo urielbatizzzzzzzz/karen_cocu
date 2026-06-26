@@ -112,6 +112,7 @@ class ProbarEjercicio extends React.Component {
     tiempo: 0,             // Tiempo de ejecución en segundos
     ayudaIA: "",           // Respuesta del asistente IA
     cargandoIA: false,     // Indicador de carga de IA
+    modoIA: "",            // "ayuda" | "tutor" -> qué botón generó la respuesta
     sugerenciaGhost: ""    // Sugerencia de autocompletado
   };
 
@@ -194,7 +195,7 @@ class ProbarEjercicio extends React.Component {
   // Envía el código y el contexto del ejercicio
   // ============================================================
   pedirAyudaIA = async () => {
-    this.setState({ cargandoIA: true });  // Mostrar indicador de carga
+    this.setState({ cargandoIA: true, modoIA: "ayuda", ayudaIA: "" });  // Mostrar indicador de carga
 
     try {
       // ============================================================
@@ -214,9 +215,9 @@ class ProbarEjercicio extends React.Component {
         cargandoIA: false
       });
     } catch (err) {
-      // Manejar errores de conexión
+      // Manejar errores de conexión mostrando el detalle real
       this.setState({
-        ayudaIA: "Error IA",
+        ayudaIA: "No se pudo obtener la ayuda IA: " + (err.response?.data?.error || err.message),
         cargandoIA: false
       });
     }
@@ -229,7 +230,7 @@ class ProbarEjercicio extends React.Component {
   // Envía el código completo y el contexto del ejercicio
   // ============================================================
   pedirTutorIA = async () => {
-    this.setState({ cargandoIA: true });
+    this.setState({ cargandoIA: true, modoIA: "tutor", ayudaIA: "" });
 
     try {
       // ============================================================
@@ -248,7 +249,7 @@ class ProbarEjercicio extends React.Component {
       });
     } catch (err) {
       this.setState({
-        ayudaIA: "Error Tutor IA",
+        ayudaIA: "No se pudo obtener el análisis del tutor: " + (err.response?.data?.error || err.message),
         cargandoIA: false
       });
     }
@@ -260,6 +261,21 @@ class ProbarEjercicio extends React.Component {
   // Cambia el ejercicio seleccionado en el dropdown
   // Actualiza el estado con el nuevo ejercicio y su código
   // ============================================================
+  // Devuelve un identificador de estado para colorear el resultado
+  // ("ok" verde, "fail" rojo, "error" naranja).
+  estadoResultado = () => {
+    if (this.state.resultado === "VERDADERO") return "ok";
+    if (this.state.resultado === "FALSO") return "fail";
+    return "error";
+  };
+
+  // Copia la respuesta de la IA al portapapeles.
+  copiarRespuesta = () => {
+    if (this.state.ayudaIA) {
+      navigator.clipboard?.writeText(this.state.ayudaIA);
+    }
+  };
+
   cambiarEjercicio = (e) => {
     const ejercicio = this.state.ejercicios[e.target.value];
     this.setState({
@@ -357,7 +373,14 @@ class ProbarEjercicio extends React.Component {
             Muestra: resultado (VERDADERO/FALSO/ERROR), salida y tiempo
           ============================================================ */}
           <div className="mt-3">
-            <h5>Resultado: {this.state.resultado}</h5>
+            <h5>
+              Resultado:{" "}
+              {this.state.resultado && (
+                <span className={`resultado-badge resultado-${this.estadoResultado()}`}>
+                  {this.state.resultado}
+                </span>
+              )}
+            </h5>
             <h5>Salida: {this.state.salida}</h5>
             <h5>Tiempo: {this.state.tiempo}s</h5>
           </div>
@@ -369,19 +392,46 @@ class ProbarEjercicio extends React.Component {
             Pedir ayuda IA: Sugerencias para resolver el ejercicio
             IA Tutor: Análisis más profundo del código
           ============================================================ */}
-          <div className="d-flex gap-3 mt-3">
-            <Button variant="success" onClick={this.ejecutar}>
-              Ejecutar
+          <div className="d-flex gap-3 mt-3 flex-wrap">
+            <Button variant="success" onClick={this.ejecutar} disabled={this.state.cargandoIA}>
+              ▶ Ejecutar
             </Button>
 
-            <Button variant="primary" onClick={this.pedirAyudaIA}>
-              Pedir ayuda IA
+            <Button variant="primary" onClick={this.pedirAyudaIA} disabled={this.state.cargandoIA}>
+              {this.state.cargandoIA && this.state.modoIA === "ayuda" ? "Pensando..." : "💡 Pedir ayuda IA"}
             </Button>
 
-            <Button variant="info" onClick={this.pedirTutorIA}>
-              IA Tutor
+            <Button variant="info" onClick={this.pedirTutorIA} disabled={this.state.cargandoIA}>
+              {this.state.cargandoIA && this.state.modoIA === "tutor" ? "Analizando..." : "🎓 IA Tutor"}
             </Button>
           </div>
+
+          {/* ============================================================
+            PANEL DE RESPUESTA DE LA IA
+          ============================================================
+            Muestra la pista (Pedir ayuda) o el análisis (IA Tutor).
+            Antes la respuesta se guardaba en el estado pero nunca se
+            renderizaba; aquí se hace visible para el usuario.
+          ============================================================ */}
+          {(this.state.cargandoIA || this.state.ayudaIA) && (
+            <div className="ia-panel mt-4">
+              <div className="ia-panel-header">
+                <span>{this.state.modoIA === "tutor" ? "🎓 IA Tutor" : "💡 Ayuda IA"}</span>
+                {!this.state.cargandoIA && this.state.ayudaIA && (
+                  <button className="ia-copiar" onClick={this.copiarRespuesta} title="Copiar respuesta">
+                    📋 Copiar
+                  </button>
+                )}
+              </div>
+              <div className="ia-panel-body">
+                {this.state.cargandoIA ? (
+                  <span className="ia-cargando">La IA está pensando, espera un momento…</span>
+                ) : (
+                  <pre className="ia-respuesta">{this.state.ayudaIA}</pre>
+                )}
+              </div>
+            </div>
+          )}
 
         </Card>
       </Container>
