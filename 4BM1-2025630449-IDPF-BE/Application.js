@@ -6,6 +6,7 @@ const url = require("url");
 const mysql = require("mysql");
 const sequelize = require("./Componentes/sequelize");
 const router = require("./Componentes/rutas");
+const { sembrarSiVacio } = require("./Componentes/seed");
 
 // ============================================================
 // CORS - permite que el frontend del dev-server (puerto 3000)
@@ -49,13 +50,15 @@ app.use((req, res, next) => {
     next();
 });
 
-sequelize.sync().then(() => {
+sequelize.sync().then(async () => {
     try{
         console.log("Base de Datos sincronizada.");
+        // Siembra datos iniciales SOLO si las tablas están vacías (BD virgen).
+        await sembrarSiVacio();
         app.listen(puerto, () => {
             console.log("Servidor corriendo en el puerto: " + puerto);
         });
     } catch(error){
-        console.error("Error al sincronizar:", error);
+        console.error("Error al sincronizar o sembrar:", error);
     }
 });
