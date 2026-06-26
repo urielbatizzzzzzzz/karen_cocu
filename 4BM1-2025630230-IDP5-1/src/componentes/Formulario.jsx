@@ -1,6 +1,7 @@
 import React from "react";
 import { Container, Form, Button, Row, Col, Card } from "react-bootstrap";
 import { Link, Navigate } from "react-router-dom";
+import { parseColumnaJson } from "./utils.js";
 import axios from "axios";
 import Swal from "sweetalert2";
 
@@ -27,20 +28,16 @@ class Formulario extends React.Component {
             .then(response => {
                 const question = response.data[0];
                 if (question && question.columnajson) {
-                    try {
-                        const datosLimpios = JSON.parse(question.columnajson);
-                        
-                        this.setState({
-                            id: question.idEjercicio, 
-                            pregunta: datosLimpios.pregunta || "",
-                            respuesta: datosLimpios.respuesta || "",
-                            drags: datosLimpios.drags || [],
-                            targets: datosLimpios.targets || [],
-                            esEdicion: true 
-                        });
-                    } catch (e) {
-                        console.error("Error al parsear JSON:", e);
-                    }
+                    const datosLimpios = parseColumnaJson(question.columnajson);
+
+                    this.setState({
+                        id: question.idEjercicio,
+                        pregunta: datosLimpios.pregunta || "",
+                        respuesta: datosLimpios.respuesta || "",
+                        drags: datosLimpios.drags || [],
+                        targets: datosLimpios.targets || [],
+                        esEdicion: true
+                    });
                 }
             })
             .catch(err => console.error("Error cargando la pregunta:", err));

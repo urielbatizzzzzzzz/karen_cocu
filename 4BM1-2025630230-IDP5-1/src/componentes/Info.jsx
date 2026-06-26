@@ -2,6 +2,7 @@ import React from "react";
 import { Button, Container } from "react-bootstrap";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { parseColumnaJson, resolverImagen } from "./utils.js";
 
 class Info extends React.Component {
 
@@ -24,19 +25,15 @@ class Info extends React.Component {
             .then(response => {
                 const question = response.data[0];
                 if (question) {
-                    try {
-                        const datosLimpios = JSON.parse(question.columnajson);
-                        this.setState({
-                            id: question.idEjercicio,
-                            pregunta: datosLimpios.pregunta || "",
-                            respuesta: datosLimpios.respuesta || "",
-                            drags: datosLimpios.drags || [],
-                            targets: datosLimpios.targets || [],
-                            esEdicion: true
-                        });
-                    } catch (e) {
-                        console.error("Error al parsear JSON:", e);
-                    }
+                    const datosLimpios = parseColumnaJson(question.columnajson);
+                    this.setState({
+                        id: question.idEjercicio,
+                        pregunta: datosLimpios.pregunta || "",
+                        respuesta: datosLimpios.respuesta || "",
+                        drags: datosLimpios.drags || [],
+                        targets: datosLimpios.targets || [],
+                        esEdicion: true
+                    });
                 }
             })
             .catch(error => {
@@ -63,8 +60,8 @@ class Info extends React.Component {
                         drags.map((option, index) => {
                             return (
                                 <span key={index} className="TarjetaOpción">
-                                    <img src={`http://localhost:8080${option.imagen}`} 
-                                        className="ImageContainer" 
+                                    <img src={resolverImagen(option.imagen)}
+                                        className="ImageContainer"
                                         alt={option.valor}/>
                                     <p>{option.valor}</p>
                                 </span>
@@ -78,9 +75,8 @@ class Info extends React.Component {
                         targets.map((target, index) => {
                             return (
                                 <span key={index} className="TarjetaOpción">
-                                    {/* Concatenamos el puerto del backend dinámicamente */}
-                                    <img src={`http://localhost:8080${target.imagen}`} 
-                                        className="ImageContainer" 
+                                    <img src={resolverImagen(target.imagen)}
+                                        className="ImageContainer"
                                         alt={target.valor}/>
                                     <p>{target.valor}</p>
                                 </span>

@@ -1,0 +1,8 @@
+# Variables de entorno / secretos (NO subir al repositorio)
+.env
+**/.env
+*.env
+
+# Dependencias
+node_modules/
+**/node_modules/

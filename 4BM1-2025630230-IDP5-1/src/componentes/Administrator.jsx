@@ -2,6 +2,7 @@ import React from "react";
 import { Button, Container, Table, Alert} from "react-bootstrap";
 import { Link } from "react-router-dom";
 import Pregunta from "./Pregunta.jsx"
+import { parseColumnaJson } from "./utils.js";
 import axios from "axios";
 
 class Administrator extends React.Component 
@@ -36,11 +37,15 @@ class Administrator extends React.Component
                             {alertText}
                         </Alert>
                         : null
-                }                
-                <Button variant="primary" style={{ margin: "12px" }}>
-
-                    <Link to="/formulario" className="CustomLink">NUEVA PREGUNTA</Link>
-                </Button>
+                }
+                <div className="crud-toolbar">
+                    <Button variant="primary">
+                        <Link to="/formulario" className="CustomLink">+ NUEVA PREGUNTA</Link>
+                    </Button>
+                    <Button variant="info">
+                        <Link to="/probar" className="CustomLink">💡 Pedir ayuda IA</Link>
+                    </Button>
+                </div>
                 <Table striped bordered >
                     <thead>
                         <tr>
@@ -51,15 +56,8 @@ class Administrator extends React.Component
                     <tbody>
                         {
                             data.map(item => {
-                                let preguntaTexto = "";
-                                try {
-                                    if (item.columnajson) {
-                                        const datos = JSON.parse(item.columnajson);
-                                        preguntaTexto = datos.pregunta || "";
-                                    }
-                                } catch (e) {
-                                    preguntaTexto = item.pregunta || "";
-                                }
+                                const datos = parseColumnaJson(item.columnajson);
+                                const preguntaTexto = datos.pregunta || "";
 
                                 return (
                                     <Pregunta 

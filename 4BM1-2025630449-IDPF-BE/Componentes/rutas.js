@@ -133,11 +133,15 @@ router.delete("/Pregunta", async (request, response) => {
     try {
         const idNumerico = parseInt(id);
         
-        const resultado = await Pregunta.destroy({ 
-            where: { idEjercicio: idNumerico } 
+        const resultado = await Pregunta.destroy({
+            where: { idEjercicio: idNumerico }
         });
-        
-        response.json({ status: "ok", eliminados: resultado });
+
+        // El frontend (Eliminar.jsx) espera status === "yes" para confirmar.
+        if (resultado > 0) {
+            return response.json({ status: "yes", eliminados: resultado });
+        }
+        response.status(404).json({ status: "no", error: "No se encontró la pregunta a eliminar" });
     } catch (error) {
         console.error("Error al eliminar:", error);
         response.status(500).json({ error: error.message });
